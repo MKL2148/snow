@@ -1,0 +1,378 @@
+<div id="waka-novel-container">
+  <!-- ヘッダー（「雪恋路」は中央、ボタン二つは右端） -->
+  <div id="novel-header">
+    <div class="header-left"></div>
+    <span class="header-title">雪恋路</span>
+    <div class="header-right">
+      <button class="control-btn" id="btn-shu" onclick="toggleShu()">朱</button>
+      <button class="control-btn" id="btn-yaku" onclick="toggleYaku()">訳</button>
+    </div>
+  </div>
+
+  <!-- メイン画面：縦書きのテキストエリア -->
+  <div class="novel-screen">
+    <div id="text-area" class="vertical-text">
+      <!-- JavaScriptでテキストがここに流し込まれます -->
+    </div>
+  </div>
+
+  <!-- 選択肢エリア -->
+  <div id="choice-area" class="choice-hidden">
+    <div class="choice-buttons-wrapper" id="choice-buttons-wrapper">
+      <!-- 動的にボタンが生成されます -->
+    </div>
+  </div>
+  
+  <div class="copyright">©和歌詠み部</div>
+</div>
+
+<style>
+  /* 全体のコンテナ（白背景・黒文字） */
+  #waka-novel-container {
+    width: 100%;
+    max-width: 650px;
+    height: 620px; 
+    margin: 20px auto;
+    background: #fcfbfa; 
+    color: #1a1a1a;       
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+  }
+
+  /* 上部コントロールバー（タイトル中央、ボタン右寄せ） */
+  #novel-header {
+    height: 40px;
+    background: #f0ebe1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px;
+    border-bottom: 1px solid #ddd;
+    position: relative;
+  }
+
+  .header-left {
+    width: 80px;
+  }
+
+  .header-title {
+    font-size: 1.5rem;
+    color: #555;
+    letter-spacing: 0.1em;
+    text-align: center;
+    flex: 1;
+    font-family: inherit;
+  }
+
+  .header-right {
+    width: 80px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .control-btn {
+    background: #ffffff;
+    color: #333;
+    border: 1px solid #b5a48b;
+    border-radius: 3px;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s;
+  }
+
+  .control-btn:hover {
+    background: #e2dbcc;
+  }
+
+  .control-btn.active {
+    background: #8c7355;
+    color: #fff;
+    border-color: #8c7355;
+  }
+
+  /* 縦書きスクリーン部分 */
+  .novel-screen {
+    flex: 1;
+    padding: 30px 40px;
+    display: flex;
+    align-items: center;      
+    justify-content: center;  
+    overflow-x: auto;
+    overflow-y: hidden;
+    position: relative;
+  }
+
+  /* 縦書き設定 */
+  .vertical-text {
+    writing-mode: vertical-rl;
+    -webkit-writing-mode: vertical-rl;
+    -ms-writing-mode: vertical-rl;
+    font-size: 1.15rem;
+    letter-spacing: 0.15em;
+    line-height: 2.2;
+    height: 100%;
+    white-space: pre-wrap;
+  }
+
+  .vertical-text .shu-text {
+    color: inherit; 
+  }
+
+  .vertical-text.show-shu .shu-text {
+    color: #b33939; /* 落ち着いた和風の赤 */
+  }
+
+  .yaku-box {
+    writing-mode: horizontal-tb; 
+    font-size: 0.85rem;
+    color: #666;
+    background: rgba(240, 235, 225, 0.9);
+    border: 1px dashed #b5a48b;
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin-right: 25px; 
+    max-width: 300px;
+    line-height: 1.6;
+    display: none; 
+  }
+
+  .yaku-box.show {
+    display: block;
+  }
+
+  .copyright {
+    position: absolute;
+    bottom: 4px;       
+    right: 10px;       
+    font-size: 0.8rem;
+    color: #888;
+    pointer-events: none;
+    letter-spacing: 0.075em;
+  }
+
+  /* 選択肢エリア */
+  #choice-area {
+    min-height: 110px;
+    background: rgba(235, 230, 220, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 12px 20px;
+    border-top: 1px solid #ddd;
+    transition: opacity 0.4s ease;
+  }
+
+  .choice-buttons-wrapper {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .choice-hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* 選択肢ボタン */
+  .choice-btn {
+    background: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #b5a48b;
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-family: inherit;
+    flex: 1;
+    min-width: 180px;
+    max-width: 48%;
+    text-align: center;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .choice-btn:hover {
+    background: #f0ebe1;
+    border-color: #8c7355;
+  }
+</style>
+
+<script>
+  /* シナリオデータ */
+  const scenario = [
+    {
+      id: 0,
+      text: "<span class=\"shu-text\">ゆき</span>たれば凍てつく恋路の進めじと\n<span class=\"shu-text\">あわで</span>帰りし道は長きと",
+      yaku: "【現代語訳】\n行ってはみたけれども、ひどい雪だったから道が凍ってしまっていて、恋の通い路を進むことができなかったよ。\n会うことができないで帰る帰り道というのは長く感じるものだな……",
+      choices: [
+        { text: "こなくとも残りし意地の望むあい\n前途進めし つめたき一歩", next: 1 },
+        { text: "靴越しに染む冷たさの雪さえも\n足跡残し 標と為さん", next: 2 },
+        { text: "そらごとね来ぬ訳さへも天の所為\nせめて会わじと君の言葉で", next: 3 }
+      ]
+    },
+    {
+      id: 1,
+      id_name: "ルート1",
+      text: "【たとえあなたが来なくても】\n<span class=\"shu-text\">こ</span>なくとも残りし意地の望むあい\n前途進めし <span class=\"shu-text\">つめたき</span>一歩\n",
+      yaku: "【現代語訳】\nたとえあなたが来なくても、私の中に残る意地が望む愛で、前途へと冷たい一歩を踏み出して、あなたとの距離を詰めたいものだ\n(この恋路、「こ」が無かろうと「意地」はある)",
+      choices: [
+        { text: "こえも得ず 山の向こうの 君も見ず\nひとりみや この月に嘆かん", next: 4 }
+      ]
+    },
+    {
+      id: 2,
+      text: "【ゆきのしるべは】\n靴越しに染む冷たさの雪さえも\n足跡残し<span class=\"shu-text\">しるべ</span>と為さん\n",
+      yaku: "【現代語訳】\n足に冷たく染みる雪でさえも、しっかりと残す足跡は、あなたのもとへ通じる道しるべになり、私があなたのことを知ろうとする強い意思の証明にもなっていくのでしょう。",
+      choices: [],
+isEnding: true,                          // エンディングフラグ    endingName: "雪の標",
+endingUrl:'https://x.com/burntFishDishes/status/1933367339053142413?s=20'
+    },
+    {
+      id: 3,
+      text: "【淡路】\n<span class=\"shu-text\">そらごと</span>ね来ぬ訳さへも天の所為\nせめて会わじと君の言葉で\n",
+      yaku: "【現代語訳】\nうそつき。私のところに来ない理由さえ、「そらごと」……天気のせいにしてしまうの？\nせめて「会わない」というその言葉は、あなた自身の声で、直接言ってほしかった",
+      choices: [
+//        { text: "最初から詠み直す", next: 0 }
+      ],
+isEnding: true,  
+    endingName: "淡路まで",
+endingUrl:'https://x.com/burntFishDishes/status/2051347939419943174'
+    },
+    {
+      id: 4,
+      text: "【月に嘆くは】\n<span class=\"shu-text\">こえ</span>も得ず 山の向こうの 君も見ず\nひとり<span class=\"shu-text\">みや こ</span>の月に嘆かん",
+      yaku: "【現代語訳】\n君の声を聞くことも、姿を見ることもできない。山を越えていけない私の、独り身を月に嘆くことしかできないのだなあ\nああ、(君も見ているであろう)都の月に",
+      choices: [
+        { text: "ふみばかり おくるあなたの おとないは\nたえぬ雪降る 静けさの中", next: 5 }
+      ]
+    },
+    {
+      id: 5,
+      text: "【音なくす雪】\n<span class=\"shu-text\">ふみ</span>ばかり <span class=\"shu-text\">おくる</span>あなたの <span class=\"shu-text\">おとない</span>は\n<span class=\"shu-text\">たえぬ</span>雪降る 静けさの中",
+      yaku: "(山を越えることができないと言って)手紙ばかりを送ってくるあなたの、訪ねてくる足音や、戸を叩く音が聞こえないのは絶えることなく降り続く雪の、耐えがたいほどの静けさの中で、その「音」が静寂に耐え切れずに無くなってしまったからなのでしょうかね？",
+      choices: [],
+      isEnding: true,
+      endingName: "音なくす雪",
+endingUrl:"https://x.com/burntFishDishes/status/2050956670877180107"
+    }
+  ];
+
+  let currentNodeId = 0;
+  let isShuActive = false;  
+  let isYakuActive = false; 
+
+  function renderScene(nodeId) {
+    const node = scenario.find(n => n.id === nodeId);
+    const textArea = document.getElementById('text-area');
+    const wrapper = document.getElementById('choice-buttons-wrapper');
+
+    let htmlContent = `<div class="yaku-box ${isYakuActive ? 'show' : ''}" id="yaku-content">${node.yaku || '現代語訳は準備中です。'}</div>`;
+    htmlContent += `<div>${node.text}</div>`;
+    textArea.innerHTML = htmlContent;
+
+    if (isShuActive) {
+      textArea.classList.add('show-shu');
+    } else {
+      textArea.classList.remove('show-shu');
+    }
+
+    wrapper.innerHTML = '';
+
+    if (node.isEnding) {
+      const tweetBtn = document.createElement('button');
+      tweetBtn.className = 'choice-btn tweet-action-btn';
+      tweetBtn.textContent = '🐣結末を呟く🐦';
+      tweetBtn.onclick = () => {
+        shareToTwitter((node.endingName || "結末"),node.endingUrl);
+      };
+      wrapper.appendChild(tweetBtn);
+
+      const restartBtn = document.createElement('button');
+      restartBtn.className = 'choice-btn';
+      restartBtn.textContent = '最初から詠み直す';
+      restartBtn.onclick = () => selectChoice(0);
+      wrapper.appendChild(restartBtn);
+    } else {
+      if (node.choices && node.choices.length > 0) {
+        node.choices.forEach((choice) => {
+          const btn = document.createElement('button');
+          btn.className = 'choice-btn';
+          btn.textContent = choice.text;
+          btn.onclick = () => selectChoice(choice.next);
+          wrapper.appendChild(btn);
+        });
+      }
+    }
+    
+    document.getElementById('choice-area').classList.remove('choice-hidden');
+  }
+
+  function shareToTwitter(endingTitle,end_waka) {
+//    const gameTitle = "雪恋路";
+    const tweetText = `【${endingTitle}】に到達しました。\n君はどの返歌を選ぶ？ ${end_waka}\n`;
+    const shareUrl = window.location.href; 
+    const hashtags = "和歌詠み部,雪恋路";
+
+    const encodedText = encodeURIComponent(tweetText);
+    const encodedUrl = encodeURIComponent(shareUrl);
+    const encodedHashtags = encodeURIComponent(hashtags);
+
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}&hashtags=${encodedHashtags}`;
+    window.open(twitterUrl, '_blank');
+  }
+
+  function selectChoice(nextId) {
+    document.getElementById('choice-area').classList.add('choice-hidden');
+    setTimeout(() => {
+      currentNodeId = nextId;
+      renderScene(currentNodeId);
+    }, 400);
+  }
+
+  function toggleShu() {
+    isShuActive = !isShuActive;
+    const textArea = document.getElementById('text-area');
+    const btnShu = document.getElementById('btn-shu');
+    
+    if (isShuActive) {
+      textArea.classList.add('show-shu');
+      btnShu.classList.add('active');
+    } else {
+      textArea.classList.remove('show-shu');
+      btnShu.classList.remove('active');
+    }
+  }
+
+  function toggleYaku() {
+    isYakuActive = !isYakuActive;
+    const yakuBox = document.getElementById('yaku-content');
+    const btnYaku = document.getElementById('btn-yaku');
+
+    if (yakuBox) {
+      if (isYakuActive) {
+        yakuBox.classList.add('show');
+        btnYaku.classList.add('active');
+      } else {
+        yakuBox.classList.remove('show');
+        btnYaku.classList.remove('active');
+      }
+    }
+  }
+
+  window.onload = function() {
+    renderScene(0);
+  };
+//17:12 2026/10/13https://share.gemini.google/vOqVsaLJndaN @MKL kinetic Yukikoiji
+</script>
